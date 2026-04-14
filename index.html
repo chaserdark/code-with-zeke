@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Code With Zeke</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ===================== BACKGROUND LAYERS ===================== -->
+<canvas id="bg"></canvas>
+<canvas id="grid"></canvas>
+<canvas id="stars"></canvas>
+<canvas id="particles"></canvas>
+<canvas id="scanlines"></canvas>
+
+<!-- ===================== CURSOR LAYERS ===================== -->
+<canvas id="cursor-trail"></canvas>
+<div id="cursor-root">
+  <canvas id="cursor-sprite"></canvas>
+  <div id="cursor-glow"></div>
+</div>
+
+<!-- ===================== SCREENS WRAPPER ===================== -->
+<div id="app">
+
+  <!-- ===== SCREEN: LOADING ===== -->
+  <div id="screen-loading" class="screen active">
+    <div class="loading-shell">
+      <div class="loading-title">CODE WITH <span>ZEKE</span></div>
+      <div class="loading-subtitle" id="loading-subtitle">PREPARING YOUR ADVENTURE...</div>
+      <div class="loading-bar">
+        <div class="loading-progress" id="loading-progress"></div>
+      </div>
+      <div class="loading-tip" id="loading-tip">Tip: Great code starts with a strong structure.</div>
+      <div class="loading-text" id="loading-text">LOADING PIXEL ADVENTURE...</div>
+    </div>
+  </div>
+ 
+  <!-- ===== SCREEN: START ===== -->
+  <div id="screen-start" class="screen">
+    <div class="start-content">
+      <div class="pixel-logo">
+        <div class="logo-icon">
+          <div class="zeke-sprite-large" id="zeke-title"></div>
+        </div>
+        <h1 class="game-title">CODE WITH<br><span class="title-accent">ZEKE</span></h1>
+        <p class="title-sub">[ A PIXEL CODING ADVENTURE ]</p>
+      </div>
+      <div class="start-menu">
+        <button class="btn-pixel btn-glow" id="btn-start">▶ START GAME</button>
+        <button class="btn-pixel btn-secondary" id="btn-dashboard">📊 DASHBOARD</button>
+        <button class="btn-pixel btn-secondary" id="btn-story">📖 ZEKE'S STORY</button>
+      </div>
+      <div class="start-footer">
+        <span class="blink-text">INSERT COIN TO PLAY</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN: INTRO ===== -->
+  <div id="screen-intro" class="screen">
+    <div class="story-box">
+      <div class="story-container">
+        <div class="zeke-sprite-large" id="zeke-intro"></div>
+        
+        <div class="story-carousel">
+          <!-- Slide 1 -->
+          <div class="story-slide active" data-slide="0">
+            <h2 class="story-title">ZEKE</h2>
+            <p class="story-text">Hey! I'm Zeke - 2nd-year CET student. I'm on a mission to master coding!</p>
+          </div>
+          
+          <!-- Slide 2 -->
+          <div class="story-slide" data-slide="1">
+            <h2 class="story-title">ZEKE</h2>
+            <p class="story-text">Every bug I fix, every function I write... makes me a better programmer.</p>
+          </div>
+          
+          <!-- Slide 3 -->
+          <div class="story-slide" data-slide="2">
+            <h2 class="story-title">ZEKE</h2>
+            <p class="story-text">Ready to join me? Let's squash some bugs and code our way to the top!</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="story-nav">
+        <div class="story-dots">
+          <span class="dot active" data-dot="0"></span>
+          <span class="dot" data-dot="1"></span>
+          <span class="dot" data-dot="2"></span>
+        </div>
+      </div>
+      
+      <button class="btn-pixel btn-glow" id="btn-intro-next" style="margin-top: 30px;">NEXT ▶</button>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN: STORY ===== -->
+  <div id="screen-story" class="screen">
+    <div class="story-box">
+      <div class="story-header">
+        <div class="zeke-sprite-large" id="zeke-story"></div>
+        <h2 class="screen-title">ZEKE'S STORY</h2>
+      </div>
+      <div class="story-text" id="story-text-content">
+        <p>Meet <strong>ZEKE</strong> — a 2nd-year Computer Engineering Technology student.</p>
+        <p>He's passionate about coding, but the path is filled with <span class="text-bug">bugs</span>, <span class="text-error">errors</span>, and <span class="text-challenge">challenges</span>.</p>
+        <p>Join Zeke on his journey from <span class="text-beginner">HTML beginner</span> to <span class="text-advanced">JavaScript master</span>.</p>
+        <p>Fight bugs, debug code, and train your logic. <span class="text-glow">Let's code!</span></p>
+      </div>
+      <button class="btn-pixel btn-glow" id="btn-story-continue">CONTINUE ▶</button>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN: MODE SELECT ===== -->
+  <div id="screen-mode" class="screen">
+    <h2 class="screen-title">SELECT MODE</h2>
+    <p class="screen-sub">Choose your challenge, player</p>
+    <div class="mode-grid">
+      <div class="mode-card" id="mode-shooter" data-mode="shooter">
+        <div class="mode-icon">🏹</div>
+        <h3>FUNCTION<br>SHOOTER</h3>
+        <p>Type fast. Destroy bugs. Survive.</p>
+        <div class="mode-tag">ACTION</div>
+      </div>
+      <div class="mode-card" id="mode-bugHunter" data-mode="bugHunter">
+        <div class="mode-icon">🐞</div>
+        <h3>BUG<br>HUNTER</h3>
+        <p>Find and fix code errors.</p>
+        <div class="mode-tag">PUZZLE</div>
+      </div>
+      <div class="mode-card" id="mode-guesser" data-mode="guesser">
+        <div class="mode-icon">🌍</div>
+        <h3>CODE<br>GUESSER</h3>
+        <p>Analyze and guess code output.</p>
+        <div class="mode-tag">LOGIC</div>
+      </div>
+    </div>
+    <button class="btn-pixel btn-back" id="btn-mode-back">◀ BACK</button>
+  </div>
+
+  <!-- ===== SCREEN: WORLD SELECT ===== -->
+  <div id="screen-world" class="screen">
+    <h2 class="screen-title">SELECT WORLD</h2>
+    <p class="screen-sub" id="world-mode-label">Mode: —</p>
+    <div class="world-grid">
+      <div class="world-card world-html" data-world="html" id="world-html">
+        <div class="world-num">01</div>
+        <div class="world-icon">🟥</div>
+        <h3>HTML WORLD</h3>
+        <p>Tags · Structure · Layout</p>
+        <div class="world-difficulty">★☆☆ BEGINNER</div>
+      </div>
+      <div class="world-card world-css" data-world="css" id="world-css">
+        <div class="world-num">02</div>
+        <div class="world-icon">🟦</div>
+        <h3>CSS WORLD</h3>
+        <p>Style · Layout · Responsive</p>
+        <div class="world-difficulty">★★☆ INTERMEDIATE</div>
+        <div class="world-lock" id="lock-css">🔒</div>
+      </div>
+      <div class="world-card world-js" data-world="js" id="world-js">
+        <div class="world-num">03</div>
+        <div class="world-icon">🟨</div>
+        <h3>JS WORLD</h3>
+        <p>Logic · Functions · DOM</p>
+        <div class="world-difficulty">★★★ ADVANCED</div>
+        <div class="world-lock" id="lock-js">🔒</div>
+      </div>
+    </div>
+    <button class="btn-pixel btn-back" id="btn-world-back">◀ BACK</button>
+  </div>
+
+  <!-- ===== SCREEN: GAMEPLAY (SHOOTER) ===== -->
+  <div id="screen-shooter" class="screen gameplay-screen">
+    <!-- HUD -->
+    <div class="hud">
+      <div class="hud-item"><span class="hud-label">SCORE</span><span class="hud-val" id="shooter-score">0</span></div>
+      <div class="hud-item"><span class="hud-label">LIVES</span><span class="hud-val" id="shooter-lives">❤️❤️❤️</span></div>
+      <div class="hud-item"><span class="hud-label">COMBO</span><span class="hud-val combo-val" id="shooter-combo">x1</span></div>
+      <div class="hud-item"><span class="hud-label">TIME</span><span class="hud-val" id="shooter-timer">60</span></div>
+    </div>
+    <!-- Arena -->
+    <div class="arena" id="shooter-arena">
+      <canvas id="shooter-canvas"></canvas>
+      <div id="shooter-question-box" class="question-overlay">
+        <p id="shooter-question-text"></p>
+      </div>
+    </div>
+    <!-- Input -->
+    <div class="shooter-input-area">
+      <div class="input-wrap">
+        <span class="input-prompt">&gt;_</span>
+        <input type="text" id="shooter-input" class="code-input" placeholder="Type answer and press Enter" autocomplete="off" spellcheck="false" />
+        <button class="btn-fire" id="shooter-fire-btn">FIRE ⚡</button>
+      </div>
+      <div class="shooter-hint-row">
+        <button class="btn-pixel btn-secondary" id="btn-shooter-hint">USE HINT</button>
+        <span class="hint-status" id="shooter-hint-count">HINTS LEFT: 3</span>
+      </div>
+      <div id="shooter-hint-text" class="hint-text"></div>
+      <div id="shooter-feedback" class="feedback-text"></div>
+    </div>
+    <button class="btn-pixel btn-quit" id="btn-shooter-quit">✕ QUIT</button>
+    <button class="btn-pixel btn-secondary" id="btn-shooter-back">CAN'T ANSWER</button>
+  </div>
+
+  <!-- ===== SCREEN: GAMEPLAY (BUG HUNTER) ===== -->
+  <div id="screen-bugHunter" class="screen gameplay-screen">
+    <div class="hud">
+      <div class="hud-item"><span class="hud-label">SCORE</span><span class="hud-val" id="bug-score">0</span></div>
+      <div class="hud-item"><span class="hud-label">BUGS LEFT</span><span class="hud-val" id="bug-count">0</span></div>
+      <div class="hud-item"><span class="hud-label">COMBO</span><span class="hud-val combo-val" id="bug-combo">x1</span></div>
+      <div class="hud-item"><span class="hud-label">TIME</span><span class="hud-val" id="bug-timer">90</span></div>
+    </div>
+    <div class="bug-content">
+      <div class="bug-instructions" id="bug-instructions">
+        <p>🐞 Click the <strong>buggy line</strong> to fix it!</p>
+        <p id="bug-hint-text" class="bug-hint"></p>
+      </div>
+      <div class="code-editor" id="code-editor">
+        <div class="editor-header">
+          <span class="editor-dot red"></span>
+          <span class="editor-dot yellow"></span>
+          <span class="editor-dot green"></span>
+          <span class="editor-filename" id="editor-filename">zeke.js</span>
+        </div>
+        <div class="editor-body" id="editor-body"></div>
+      </div>
+      <div id="bug-fix-panel" class="fix-panel hidden">
+        <p class="fix-label">✏️ Fix the bug:</p>
+        <input type="text" id="bug-fix-input" class="code-input" placeholder="Type corrected line..." autocomplete="off" spellcheck="false"/>
+        <div class="fix-btns">
+          <button class="btn-pixel btn-glow" id="bug-submit-btn">SUBMIT FIX</button>
+          <button class="btn-pixel btn-secondary" id="bug-cancel-btn">CANCEL</button>
+        </div>
+        <div id="bug-feedback" class="feedback-text"></div>
+      </div>
+    </div>
+    <button class="btn-pixel btn-quit" id="btn-bug-quit">✕ QUIT</button>
+    <button class="btn-pixel btn-secondary" id="btn-bug-back">CAN'T ANSWER</button>
+  </div>
+
+  <!-- ===== SCREEN: GAMEPLAY (CODE GUESSER) ===== -->
+  <div id="screen-guesser" class="screen gameplay-screen">
+    <div class="hud">
+      <div class="hud-item"><span class="hud-label">SCORE</span><span class="hud-val" id="guess-score">0</span></div>
+      <div class="hud-item"><span class="hud-label">QUESTION</span><span class="hud-val" id="guess-qnum">1/10</span></div>
+      <div class="hud-item"><span class="hud-label">COMBO</span><span class="hud-val combo-val" id="guess-combo">x1</span></div>
+      <div class="hud-item"><span class="hud-label">TIME</span><span class="hud-val" id="guess-timer">30</span></div>
+    </div>
+    <div class="guesser-content">
+      <div class="guess-type-label" id="guess-type-label">OUTPUT GUESS</div>
+      <div class="code-display" id="guess-code-display"></div>
+      <div class="guess-question" id="guess-question-text"></div>
+      <div id="guess-options" class="guess-options"></div>
+      <div id="guess-input-area" class="guess-input-area hidden">
+        <input type="text" id="guess-text-input" class="code-input" placeholder="Type your answer..." autocomplete="off" spellcheck="false"/>
+        <button class="btn-pixel btn-glow" id="guess-submit-btn">SUBMIT</button>
+      </div>
+      <div id="guess-feedback" class="feedback-text"></div>
+    </div>
+    <button class="btn-pixel btn-quit" id="btn-guess-quit">✕ QUIT</button>
+    <button class="btn-pixel btn-secondary" id="btn-guess-back">CAN'T ANSWER</button>
+  </div>
+
+  <!-- ===== SCREEN: RESULTS ===== -->
+  <div id="screen-results" class="screen">
+    <div class="results-box">
+      <div class="results-header">
+        <div class="zeke-sprite-result" id="zeke-result"></div>
+        <h2 class="results-title" id="results-title">MISSION COMPLETE!</h2>
+      </div>
+      <div class="results-rank" id="results-rank">S</div>
+      <div class="results-stats">
+        <div class="stat-row"><span>SCORE</span><span id="res-score">0</span></div>
+        <div class="stat-row"><span>ACCURACY</span><span id="res-accuracy">0%</span></div>
+        <div class="stat-row"><span>MAX COMBO</span><span id="res-combo">x1</span></div>
+        <div class="stat-row"><span>TIME BONUS</span><span id="res-time">0</span></div>
+      </div>
+      <div class="results-btns">
+        <button class="btn-pixel btn-glow" id="btn-retry">↺ RETRY</button>
+        <button class="btn-pixel btn-secondary" id="btn-modes">MODE SELECT</button>
+        <button class="btn-pixel btn-secondary" id="btn-home-from-results">🏠 HOME</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SCREEN: DASHBOARD ===== -->
+  <div id="screen-dashboard" class="screen">
+    <h2 class="screen-title">📊 ZEKE'S DASHBOARD</h2>
+    <div class="dashboard-grid">
+      <div class="dash-card">
+        <h3>🏆 HIGH SCORES</h3>
+        <div id="dash-highscores"></div>
+      </div>
+      <div class="dash-card">
+        <h3>🌍 WORLDS UNLOCKED</h3>
+        <div id="dash-worlds"></div>
+      </div>
+      <div class="dash-card">
+        <h3>📈 ZEKE'S RANK</h3>
+        <div id="dash-rank"></div>
+      </div>
+      <div class="dash-card">
+        <h3>🎮 GAMES PLAYED</h3>
+        <div id="dash-played"></div>
+      </div>
+    </div>
+    <button class="btn-pixel btn-back" id="btn-dash-back">◀ BACK</button>
+  </div>
+
+  <!-- ===== SCREEN: LEARNING ===== -->
+  <div id="screen-learning" class="screen">
+    <h2 class="screen-title">LEARNING TIME!</h2>
+    <p class="screen-sub">Here are the concepts you encountered in this level</p>
+    <div id="learning-content" class="learning-content"></div>
+    <div class="learning-btns">
+      <button class="btn-pixel btn-glow" id="btn-learning-continue">CONTINUE TO RESULTS</button>
+      <button class="btn-pixel btn-secondary" id="btn-learning-back">BACK TO MODES</button>
+    </div>
+  </div>
+
+</div><!-- end #app -->
+
+<!-- ===================== EXPLOSION LAYER ===================== -->
+<div id="explosion-layer"></div>
+
+<!-- ===================== NOTIFICATION ===================== -->
+<div id="notif" class="notif hidden"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
