@@ -699,9 +699,34 @@ function showResults(opts = {}) {
 /* ============================================================
    10. LEARNING SCREEN
    ============================================================ */
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function loadLearning(mode, world) {
   const content = document.getElementById('learning-content');
   content.innerHTML = '';
+
+  const modeTitles = {
+    shooter: 'Function Shooter - Learn the Basics',
+    bugHunter: 'Bug Hunter - Fix Code Errors',
+    guesser: 'Code Guesser - Understand Outputs'
+  };
+
+  const header = document.createElement('h2');
+  header.textContent = modeTitles[mode] || 'Learning Time';
+  header.style.color = 'var(--cyan)';
+  header.style.fontFamily = 'var(--font-pixel)';
+  header.style.fontSize = '16px';
+  header.style.textAlign = 'center';
+  header.style.marginBottom = '20px';
+  header.style.textShadow = 'var(--glow-c)';
+  content.appendChild(header);
 
   let items = [];
   if (mode === 'shooter') {
@@ -712,31 +737,75 @@ function loadLearning(mode, world) {
     items = GUESSER_QS[world];
   }
 
-  items.forEach(item => {
+  items.forEach((item, index) => {
     const div = document.createElement('div');
     div.className = 'learning-item';
 
+    const itemHeader = document.createElement('h4');
+    itemHeader.textContent = `Lesson ${index + 1}`;
+    div.appendChild(itemHeader);
+
+    function addRow(label, value, useCode = false) {
+      const row = document.createElement('p');
+      const strong = document.createElement('strong');
+      strong.textContent = `${label}: `;
+      row.appendChild(strong);
+      if (useCode) {
+        const code = document.createElement('code');
+        code.innerHTML = escapeHtml(value);
+        row.appendChild(code);
+      } else {
+        row.appendChild(document.createTextNode(value));
+      }
+      div.appendChild(row);
+    }
+
     if (mode === 'shooter') {
-      div.innerHTML = `
-        <h3>${item.q}</h3>
-        <p><strong>Answer:</strong> ${item.a}</p>
-        <p><strong>Explanation:</strong> ${item.explanation}</p>
-      `;
+      addRow('Question', item.q);
+      addRow('Hint', item.hint);
+      addRow('Answer', item.a, true);
+      addRow('Why', item.explanation);
     } else if (mode === 'bugHunter') {
-      div.innerHTML = `
-        <h3>Bug in ${item.file}</h3>
-        <pre>${item.lines.join('\n')}</pre>
-        <p><strong>Bug:</strong> ${item.bugs[0].hint}</p>
-        <p><strong>Fix:</strong> Change "${item.bugs[0].wrong}" to "${item.bugs[0].right}"</p>
-        <p><strong>Explanation:</strong> ${item.explanation}</p>
-      `;
+      addRow('File', item.file);
+      const problem = document.createElement('p');
+      const strongProblem = document.createElement('strong');
+      strongProblem.textContent = 'Problem Code:';
+      problem.appendChild(strongProblem);
+      div.appendChild(problem);
+
+      const buggyCodeBlock = document.createElement('pre');
+      buggyCodeBlock.innerHTML = escapeHtml(item.lines.join('\n'));
+      buggyCodeBlock.style.background = '#220000';
+      buggyCodeBlock.style.borderColor = '#ff3c5a';
+      div.appendChild(buggyCodeBlock);
+
+      addRow('Issue', item.bugs[0].hint);
+      const fixedBlockLabel = document.createElement('p');
+      const strongFixed = document.createElement('strong');
+      strongFixed.textContent = 'Fixed Code:';
+      fixedBlockLabel.appendChild(strongFixed);
+      div.appendChild(fixedBlockLabel);
+
+      const fixedCodeBlock = document.createElement('pre');
+      const fixedLines = [...item.lines];
+      item.bugs.forEach(bug => {
+        fixedLines[bug.line] = fixedLines[bug.line].replace(bug.wrong, bug.right);
+      });
+      fixedCodeBlock.innerHTML = escapeHtml(fixedLines.join('\n'));
+      fixedCodeBlock.style.background = '#001a00';
+      fixedCodeBlock.style.borderColor = '#00ff88';
+      div.appendChild(fixedCodeBlock);
+
+      addRow('How to Fix', `${item.bugs[0].wrong} → ${item.bugs[0].right}`);
+      addRow('Why Important', item.explanation);
     } else if (mode === 'guesser') {
-      div.innerHTML = `
-        <h3>${item.question}</h3>
-        <pre>${item.code}</pre>
-        <p><strong>Answer:</strong> ${item.answer}</p>
-        <p><strong>Explanation:</strong> ${item.explanation}</p>
-      `;
+      addRow('Question', item.question);
+      const codeBlock = document.createElement('pre');
+      codeBlock.innerHTML = escapeHtml(item.code);
+      div.appendChild(codeBlock);
+      if (item.options) addRow('Options', item.options.join(' | '));
+      addRow('Answer', item.answer);
+      addRow('Explanation', item.explanation);
     }
 
     content.appendChild(div);
