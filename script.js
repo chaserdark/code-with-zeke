@@ -63,7 +63,8 @@ const State = {
   timerInterval: null,
   correct: 0,
   total:   0,
-  resultsOpts: null
+  resultsOpts: null,
+  worldCleared: false
 };
 
 function resetState() {
@@ -74,6 +75,7 @@ function resetState() {
   State.correct  = 0;
   State.total    = 0;
   State.resultsOpts = null;
+  State.worldCleared = false;
   clearInterval(State.timerInterval);
 }
 
@@ -342,6 +344,10 @@ function spawnExplosion(x, y, color = '#00ff88') {
    7. SCREEN SHAKE
    ============================================================ */
 function screenShake() {
+  if (window._shooterCorrectHit) {
+    window._shooterCorrectHit = false;
+    return;
+  }
   const app = document.getElementById('app');
   const explosionLayer = document.getElementById('explosion-layer');
   
@@ -373,10 +379,10 @@ function showLoadingScreen(duration = 4200, subtitle = 'PREPARING YOUR ADVENTURE
   if (loadingText) loadingText.textContent = 'GET READY...';
   if (progressEl) progressEl.style.width = '0%';
   const timer = setInterval(() => {
-    progress = Math.min(100, progress + 8 + Math.random() * 12);
+    progress = Math.min(100, progress + 50);
     if (progressEl) progressEl.style.width = progress + '%';
-    if (progress >= 96) clearInterval(timer);
-  }, 220);
+    if (progress >= 100) clearInterval(timer);
+  }, 100);
   setTimeout(() => {
     if (progressEl) progressEl.style.width = '100%';
     clearInterval(timer);
@@ -419,9 +425,13 @@ function getLoadingTip(world) {
 function loadGame(mode, world) {
   State._lastMode = mode;
   State._lastWorld = world;
-  const worldLabel = world.toUpperCase() + ' WORLD';
-  const tipText = getLoadingTip(world);
-  showLoadingScreen(3200, 'LOADING ' + worldLabel + '...', tipText, () => startMode(mode, world));
+  if (mode === 'shooter') {
+    startMode(mode, world);
+  } else {
+    const worldLabel = world.toUpperCase() + ' WORLD';
+    const tipText = getLoadingTip(world);
+    showLoadingScreen(500, 'LOADING ' + worldLabel + '...', tipText, () => startMode(mode, world));
+  }
 }
 
 /* ============================================================
@@ -431,40 +441,40 @@ function loadGame(mode, world) {
 // ---------- SHOOTER QUESTIONS ----------
 const SHOOTER_QS = {
   html: [
-    { q: "What tag creates a hyperlink?",           a: "<a>",       hint: "anchor", explanation: "The <a> tag defines a hyperlink, used to link from one page to another. The href attribute specifies the URL of the page the link goes to." },
-    { q: "What tag makes the biggest heading?",      a: "<h1>",      hint: "h1-h6", explanation: "The <h1> tag represents the highest level heading in HTML. Headings range from <h1> (most important) to <h6> (least important)." },
-    { q: "Tag for unordered list:",                  a: "<ul>",      hint: "ul/ol", explanation: "The <ul> tag defines an unordered (bulleted) list. Use <li> tags inside it for list items." },
-    { q: "Tag for paragraph:",                       a: "<p>",       hint: "p", explanation: "The <p> tag defines a paragraph of text. Browsers automatically add space before and after paragraphs." },
-    { q: "Self-closing tag for image:",              a: "<img>",     hint: "img", explanation: "The <img> tag embeds an image in the HTML page. It requires a src attribute with the image URL and an alt attribute for accessibility." },
-    { q: "Tag that wraps all visible content:",      a: "<body>",    hint: "body", explanation: "The <body> tag contains all the visible content of an HTML document, such as text, images, and links." },
-    { q: "Tag to include CSS file:",                 a: "<link>",    hint: "link rel", explanation: "The <link> tag links external resources like CSS files. Use rel='stylesheet' and href to specify the CSS file path." },
-    { q: "Tag for a table row:",                     a: "<tr>",      hint: "tr", explanation: "The <tr> tag defines a row in an HTML table. It contains <td> or <th> elements for cells." },
-    { q: "Tag for a table data cell:",               a: "<td>",      hint: "td", explanation: "The <td> tag defines a standard cell in an HTML table. It holds data within a table row." },
-    { q: "Tag for bold text:",                       a: "<strong>",  hint: "strong", explanation: "The <strong> tag indicates strong importance, usually displayed as bold text. It's semantic and better than <b> for accessibility." }
+    { q: "What tag creates a hyperlink?",           a: "<a>",       hint: "anchor", label: "TAG?", explanation: "The <a> tag defines a hyperlink, used to link from one page to another. The href attribute specifies the URL of the page the link goes to." },
+    { q: "What tag makes the biggest heading?",      a: "<h1>",      hint: "h1-h6", label: "TAG?", explanation: "The <h1> tag represents the highest level heading in HTML. Headings range from <h1> (most important) to <h6> (least important)." },
+    { q: "Tag for unordered list:",                  a: "<ul>",      hint: "ul/ol", label: "TAG?", explanation: "The <ul> tag defines an unordered (bulleted) list. Use <li> tags inside it for list items." },
+    { q: "Tag for paragraph:",                       a: "<p>",       hint: "p", label: "TAG?", explanation: "The <p> tag defines a paragraph of text. Browsers automatically add space before and after paragraphs." },
+    { q: "Self-closing tag for image:",              a: "<img>",     hint: "img", label: "TAG?", explanation: "The <img> tag embeds an image in the HTML page. It requires a src attribute with the image URL and an alt attribute for accessibility." },
+    { q: "Tag that wraps all visible content:",      a: "<body>",    hint: "body", label: "TAG?", explanation: "The <body> tag contains all the visible content of an HTML document, such as text, images, and links." },
+    { q: "Tag to include CSS file:",                 a: "<link>",    hint: "link rel", label: "TAG?", explanation: "The <link> tag links external resources like CSS files. Use rel='stylesheet' and href to specify the CSS file path." },
+    { q: "Tag for a table row:",                     a: "<tr>",      hint: "tr", label: "TAG?", explanation: "The <tr> tag defines a row in an HTML table. It contains <td> or <th> elements for cells." },
+    { q: "Tag for a table data cell:",               a: "<td>",      hint: "td", label: "TAG?", explanation: "The <td> tag defines a standard cell in an HTML table. It holds data within a table row." },
+    { q: "Tag for bold text:",                       a: "<strong>",  hint: "strong", label: "TAG?", explanation: "The <strong> tag indicates strong importance, usually displayed as bold text. It's semantic and better than <b> for accessibility." }
   ],
   css: [
-    { q: "Property to change text color:",           a: "color",             hint: "not background", explanation: "The color property sets the color of text. It accepts color names, hex codes, RGB, etc." },
-    { q: "Property for element width:",              a: "width",             hint: "box model", explanation: "The width property sets the width of an element. It's part of the CSS box model along with height, padding, border, and margin." },
-    { q: "Display value for inline flexible box:",   a: "flex",              hint: "display: ?", explanation: "Setting display: flex creates a flex container, enabling flexible layouts with properties like justify-content and align-items." },
-    { q: "Property to round corners:",               a: "border-radius",     hint: "rounded", explanation: "The border-radius property rounds the corners of an element's border. You can specify different radii for each corner." },
-    { q: "Property for element spacing inside:",     a: "padding",           hint: "inner space", explanation: "Padding is the space between an element's content and its border. It adds internal spacing without affecting layout." },
-    { q: "Value for no text decoration:",            a: "none",              hint: "text-decoration: ?", explanation: "Setting text-decoration: none removes underlines, overlines, or line-through from text, often used for links." },
-    { q: "Property for stacking order:",             a: "z-index",           hint: "layers", explanation: "The z-index property controls the stacking order of positioned elements. Higher values appear on top." },
-    { q: "Property to make text bold:",              a: "font-weight",       hint: "weight", explanation: "The font-weight property sets the weight (boldness) of text. Values include normal, bold, or numeric weights like 400." },
-    { q: "CSS selector for a class:",                a: ".",                 hint: "prefix", explanation: "The class selector (.) targets elements with a specific class attribute. Classes can be reused across multiple elements." },
-    { q: "CSS selector for an id:",                  a: "#",                 hint: "hash", explanation: "The id selector (#) targets a unique element with a specific id attribute. IDs must be unique within a page." }
+    { q: "Property to change text color:",           a: "color",             hint: "not background", label: "PROP?", explanation: "The color property sets the color of text. It accepts color names, hex codes, RGB, etc." },
+    { q: "Property for element width:",              a: "width",             hint: "box model", label: "PROP?", explanation: "The width property sets the width of an element. It's part of the CSS box model along with height, padding, border, and margin." },
+    { q: "Display value for inline flexible box:",   a: "flex",              hint: "display: ?", label: "VALUE?", explanation: "Setting display: flex creates a flex container, enabling flexible layouts with properties like justify-content and align-items." },
+    { q: "Property to round corners:",               a: "border-radius",     hint: "rounded", label: "PROP?", explanation: "The border-radius property rounds the corners of an element's border. You can specify different radii for each corner." },
+    { q: "Property for element spacing inside:",     a: "padding",           hint: "inner space", label: "PROP?", explanation: "Padding is the space between an element's content and its border. It adds internal spacing without affecting layout." },
+    { q: "Value for no text decoration:",            a: "none",              hint: "text-decoration: ?", label: "VALUE?", explanation: "Setting text-decoration: none removes underlines, overlines, or line-through from text, often used for links." },
+    { q: "Property for stacking order:",             a: "z-index",           hint: "layers", label: "PROP?", explanation: "The z-index property controls the stacking order of positioned elements. Higher values appear on top." },
+    { q: "Property to make text bold:",              a: "font-weight",       hint: "weight", label: "PROP?", explanation: "The font-weight property sets the weight (boldness) of text. Values include normal, bold, or numeric weights like 400." },
+    { q: "CSS selector for a class:",                a: ".",                 hint: "prefix", label: "SYMBOL?", explanation: "The class selector (.) targets elements with a specific class attribute. Classes can be reused across multiple elements." },
+    { q: "CSS selector for an id:",                  a: "#",                 hint: "hash", label: "SYMBOL?", explanation: "The id selector (#) targets a unique element with a specific id attribute. IDs must be unique within a page." }
   ],
   js: [
-    { q: "Output: console.log(2 + '3')",             a: "23",        hint: "concatenation", explanation: "In JavaScript, the + operator concatenates strings. When one operand is a string, the other is converted to string." },
-    { q: "Output: console.log(typeof null)",         a: "object",    hint: "famous bug", explanation: "typeof null returns 'object' due to a historical bug in JavaScript. null is a primitive type, not an object." },
-    { q: "Output: console.log(1 == '1')",            a: "true",      hint: "loose equality", explanation: "The == operator performs type coercion. It converts '1' to number 1, so 1 == 1 is true." },
-    { q: "Output: console.log(1 === '1')",           a: "false",     hint: "strict equality", explanation: "The === operator checks value and type without coercion. 1 (number) !== '1' (string)." },
-    { q: "Declare a constant: __ x = 5;",            a: "const",     hint: "immutable", explanation: "const declares a constant variable that cannot be reassigned. Use const for values that don't change." },
-    { q: "Output: [1,2,3].length",                   a: "3",         hint: "array length", explanation: "The length property returns the number of elements in an array. Arrays are zero-indexed." },
-    { q: "Output: Math.max(3, 7, 2)",                a: "7",         hint: "max value", explanation: "Math.max() returns the largest number from the arguments provided." },
-    { q: "Output: 'hello'.toUpperCase()",            a: "HELLO",     hint: "string method", explanation: "The toUpperCase() method converts a string to uppercase letters." },
-    { q: "Output: Boolean(0)",                       a: "false",     hint: "falsy", explanation: "Boolean() converts a value to true or false. 0, '', null, undefined, NaN are falsy." },
-    { q: "Output: [1,2,3].indexOf(2)",               a: "1",         hint: "zero-based index", explanation: "indexOf() returns the first index of an element. Arrays start at index 0, so 2 is at index 1." }
+    { q: "Output: console.log(2 + '3')",             a: "23",        hint: "concatenation", label: "OUTPUT?", explanation: "In JavaScript, the + operator concatenates strings. When one operand is a string, the other is converted to string." },
+    { q: "Output: console.log(typeof null)",         a: "object",    hint: "famous bug", label: "OUTPUT?", explanation: "typeof null returns 'object' due to a historical bug in JavaScript. null is a primitive type, not an object." },
+    { q: "Output: console.log(1 == '1')",            a: "true",      hint: "loose equality", label: "OUTPUT?", explanation: "The == operator performs type coercion. It converts '1' to number 1, so 1 == 1 is true." },
+    { q: "Output: console.log(1 === '1')",           a: "false",     hint: "strict equality", label: "OUTPUT?", explanation: "The === operator checks value and type without coercion. 1 (number) !== '1' (string)." },
+    { q: "Declare a constant: __ x = 5;",            a: "const",     hint: "immutable", label: "KEYWORD?", explanation: "const declares a constant variable that cannot be reassigned. Use const for values that don't change." },
+    { q: "Output: [1,2,3].length",                   a: "3",         hint: "array length", label: "OUTPUT?", explanation: "The length property returns the number of elements in an array. Arrays are zero-indexed." },
+    { q: "Output: Math.max(3, 7, 2)",                a: "7",         hint: "max value", label: "OUTPUT?", explanation: "Math.max() returns the largest number from the arguments provided." },
+    { q: "Output: 'hello'.toUpperCase()",            a: "HELLO",     hint: "string method", label: "OUTPUT?", explanation: "The toUpperCase() method converts a string to uppercase letters." },
+    { q: "Output: Boolean(0)",                       a: "false",     hint: "falsy", label: "OUTPUT?", explanation: "Boolean() converts a value to true or false. 0, '', null, undefined, NaN are falsy." },
+    { q: "Output: [1,2,3].indexOf(2)",               a: "1",         hint: "zero-based index", label: "OUTPUT?", explanation: "indexOf() returns the first index of an element. Arrays start at index 0, so 2 is at index 1." }
   ]
 };
 
@@ -661,7 +671,9 @@ function showResults(opts = {}) {
 
   // rank
   let rank = 'D';
-  if      (accuracy >= 95) rank = 'S';
+  if (mode === 'shooter' && State.worldCleared) {
+    rank = 'S';
+  } else if (accuracy >= 95) rank = 'S';
   else if (accuracy >= 80) rank = 'A';
   else if (accuracy >= 65) rank = 'B';
   else if (accuracy >= 50) rank = 'C';
@@ -683,7 +695,7 @@ function showResults(opts = {}) {
     d.gamesPlayed++;
     d.totalScore += finalScore;
     // unlock worlds
-    if (accuracy >= 60) {
+    if ((mode === 'shooter' && State.worldCleared) || accuracy >= 60) {
       if (world === 'html') d.worlds.css = true;
       if (world === 'css')  d.worlds.js  = true;
     }
@@ -836,178 +848,274 @@ function startTimer(seconds, displayId, onTick, onEnd) {
 /* ============================================================
    11. SHOOTER MODE
    ============================================================ */
-const Shooter = (() => {
-  let canvas, ctx, enemies = [], currentQ = null;
-  let qIndex = 0, qs = [], timeLeft = 60;
-  let animId = null;
+const Shooter = {
 
-  const ENEMY_COLORS = ['#ff3c5a','#bf00ff','#ff7c00','#00e5ff'];
+  /* internal timers */
+  _timerInterval: null,
+  _spawnInterval: null,
 
-  function init(world) {
+  /* state */
+  timeLeft:      60,
+  questions:     [],
+  enemies:       [],   // [{ el, q, uid }]  — ordered oldest→newest (left→right)
+  _uid:          0,    // unique id counter (never reused)
+  maxEnemies:    7,
+  enemiesSpawned: 0,
+
+  /* ── PUBLIC: called by Game.selectWorld() ── */
+  start(world) {
     resetState();
-    qs       = shuffle([...SHOOTER_QS[world]]);
-    qIndex   = 0;
-    enemies  = [];
-    timeLeft = 60;
+    this.timeLeft       = 60;
+    this.enemies        = [];
+    this._uid           = 0;
+    this.enemiesSpawned = 0;
 
-    document.getElementById('shooter-score').textContent = '0';
-    document.getElementById('shooter-combo').textContent = 'x1';
-    document.getElementById('shooter-lives').textContent = '❤️❤️❤️';
-    document.getElementById('shooter-input').value = '';
-    document.getElementById('shooter-feedback').textContent = '';
+    /* Pick question pool for the selected world */
+    if (!SHOOTER_QS[world]) world = 'html';
+    this.questions = shuffle([...SHOOTER_QS[world]]);
 
-    canvas = document.getElementById('shooter-canvas');
-    ctx    = canvas.getContext('2d');
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    this._clearArena();
+    this._updateHUD();
 
     Router.go('shooter');
-    nextQuestion();
-    spawnEnemy();
+    this._showTargetQuestion();
+
+    /* Spawn first enemy immediately */
+    this._spawnEnemy();
 
     startTimer(60, 'shooter-timer', (t) => {
-      timeLeft = t;
+      this.timeLeft = t;
       if (t <= 10) document.getElementById('shooter-timer').style.color = 'var(--red)';
-    }, endGame);
+    }, () => this.endGame());
 
-    cancelAnimationFrame(animId);
-    loop();
-  }
+    /* Spawn a new enemy every 4 s */
+    this._spawnInterval = setInterval(() => this._spawnEnemy(), 4000);
 
-  function resizeCanvas() {
-    const arena = document.getElementById('shooter-arena');
-    canvas.width  = arena.clientWidth;
-    canvas.height = arena.clientHeight || 260;
-  }
-
-  function nextQuestion() {
-    if (qIndex >= qs.length) qIndex = 0;
-    currentQ = qs[qIndex++];
-    document.getElementById('shooter-question-text').textContent = currentQ.q;
-    State.total++;
-  }
-
-  function spawnEnemy() {
-    if (Router.current !== 'shooter') return;
-    const speed = 0.4 + (State.score / 800);
-    enemies.push({
-      x: canvas.width + 40,
-      y: 40 + Math.random() * (canvas.height - 100),
-      vx: -(speed + Math.random() * 0.5),
-      color: ENEMY_COLORS[Math.floor(Math.random() * ENEMY_COLORS.length)],
-      size: 28,
-      hp: 1,
-      alive: true
-    });
-    const delay = Math.max(1800, 3500 - State.score * 2);
-    setTimeout(() => { if (Router.current === 'shooter') spawnEnemy(); }, delay);
-  }
-
-  function loop() {
-    if (Router.current !== 'shooter') return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGrid();
-
-    enemies.forEach((e, i) => {
-      if (!e.alive) return;
-      e.x += e.vx;
-      // crossed left edge → lose life
-      if (e.x < -e.size) {
-        e.alive = false;
-        loseLife();
-        return;
-      }
-      drawBug(e);
-    });
-
-    enemies = enemies.filter(e => e.alive || e.x > -100);
-    animId = requestAnimationFrame(loop);
-  }
-
-  function drawGrid() {
-    ctx.strokeStyle = 'rgba(42,42,69,0.4)';
-    ctx.lineWidth = 1;
-    const gs = 40;
-    for (let x = 0; x < canvas.width;  x += gs) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
-    for (let y = 0; y < canvas.height; y += gs) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
-  }
-
-  function drawBug(e) {
-    ctx.save();
-    ctx.shadowColor = e.color;
-    ctx.shadowBlur  = 14;
-    ctx.fillStyle   = e.color;
-    // pixel bug shape (simple)
-    const s = e.size;
-    ctx.fillRect(e.x - s/2, e.y - s/2, s, s);
-    ctx.fillStyle = '#0a0a0f';
-    ctx.fillRect(e.x - s/4, e.y - s/4, s/5, s/5);   // left eye
-    ctx.fillRect(e.x + s/8, e.y - s/4, s/5, s/5);   // right eye
-    // antennae
-    ctx.strokeStyle = e.color;
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(e.x - s/4, e.y - s/2); ctx.lineTo(e.x - s/2, e.y - s); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(e.x + s/4, e.y - s/2); ctx.lineTo(e.x + s/2, e.y - s); ctx.stroke();
-    ctx.restore();
-  }
-
-  function fire(answer) {
+    /* Wire up input */
     const input = document.getElementById('shooter-input');
-    const ans   = answer.trim().toLowerCase();
-    const corr  = currentQ.a.trim().toLowerCase();
+    if (input) {
+      input.value = '';
+      input.focus();
+      input.onkeydown = e => { if (e.key === 'Enter') this.fire(); };
+    }
+    const fireBtn = document.getElementById('shooter-fire-btn');
+    if (fireBtn) fireBtn.onclick = () => this.fire();
+  },
 
-    if (ans === corr) {
-      // hit nearest enemy
-      if (enemies.length > 0) {
-        const e = enemies.reduce((a, b) => (a.x > b.x ? a : b));
-        spawnExplosion(e.x, e.y + 60, e.color);
-        e.alive = false;
-      }
-      State.score  += 100 * State.combo;
+  /* ── PUBLIC: called by Game.goTo() when leaving shooter ── */
+  stop() {
+    clearInterval(this._timerInterval);
+    clearInterval(this._spawnInterval);
+    this._clearArena();
+  },
+
+  /* ── FIRE: called by FIRE button or Enter key ── */
+  fire() {
+    const input = document.getElementById('shooter-input');
+    if (!input) return;
+
+    /* Always target the LEFTMOST (oldest) enemy */
+    if (this.enemies.length === 0) {
+      input.value = '';
+      return;
+    }
+
+    const target   = this.enemies[0];   // leftmost = index 0
+    const userAns  = input.value.trim().toLowerCase();
+    const correct  = target.q.a.toLowerCase();
+
+    if (userAns === correct) {
+      /* ✅ CORRECT — destroy leftmost enemy, NO red shake */
+      this._destroyEnemy(target.uid);
+
+      const hintEl = document.getElementById('shooter-hint-text');
+      if (hintEl) hintEl.textContent = '';
+      input.style.color = '';
+
+      State.score  += 100;
       State.combo   = Math.min(State.combo + 1, 8);
       State.correct++;
       State.maxCombo = Math.max(State.maxCombo, State.combo);
-      setFeedback('shooter-feedback', '✓ CORRECT! +' + (100 * (State.combo-1)), 'ok');
-      spawnEnemy();
+      setFeedback('shooter-feedback', '✓ CORRECT! +100', 'ok');
+
+      this._updateHUD();
+      this._showTargetQuestion();
+
     } else {
-      State.combo = 1;
-      setFeedback('shooter-feedback', '✗ WRONG! Hint: ' + currentQ.hint, 'err');
+      /* ❌ WRONG — red shake, red input tint, break combo */
       screenShake();
+
+      State.combo = 1;
+      input.style.color = '#ff4455';
+      setTimeout(() => { input.style.color = ''; }, 350);
+
+      this._updateHUD();
     }
 
-    updateHUD_shooter();
     input.value = '';
-    nextQuestion();
-  }
+    input.focus();
+  },
 
-  function loseLife() {
-    State.lives--;
-    State.combo = 1;
-    screenShake();
-    const hearts = ['','❤️','❤️❤️','❤️❤️❤️'];
-    document.getElementById('shooter-lives').textContent = hearts[Math.max(0,State.lives)] || '💀';
-    if (State.lives <= 0) endGame();
-    updateHUD_shooter();
-  }
+  /* ══════════════════════════════════════════════════════════
+     PRIVATE HELPERS
+  ══════════════════════════════════════════════════════════ */
 
-  function updateHUD_shooter() {
+  _spawnEnemy() {
+    if (Router.current !== 'shooter') return;
+    if (this.questions.length === 0) return;
+    if (this.enemiesSpawned >= this.maxEnemies) {
+      if (this._spawnInterval) {
+        clearInterval(this._spawnInterval);
+        this._spawnInterval = null;
+      }
+      return;
+    }
+
+    this._uid++;
+    this.enemiesSpawned++;
+    const uid = this._uid;
+    const q   = this.questions[(uid - 1) % this.questions.length];
+
+    /* Build enemy DOM element */
+    const el       = document.createElement('div');
+    el.className   = 'enemy-bug';
+    el.id          = `enemy-${uid}`;
+    el.dataset.uid = uid;
+
+    const topPct   = 8 + Math.random() * 50;
+    const duration = 9 + Math.random() * 6;   // seconds to cross screen
+
+    el.style.cssText = `
+      top: ${topPct}%;
+      right: -230px;
+      animation: enemySlide ${duration}s linear forwards;
+    `;
+    el.innerHTML = `
+      <span class="enemy-label">${q.label || 'TAG?'}</span>
+      <span>${q.q}</span>
+    `;
+
+    /* Click to manually target this enemy */
+    el.addEventListener('click', () => {
+      /* Move clicked enemy to front of the array so it becomes
+         the leftmost target */
+      const idx = this.enemies.findIndex(e => e.uid === uid);
+      if (idx > 0) {
+        const [item] = this.enemies.splice(idx, 1);
+        this.enemies.unshift(item);
+        this._showTargetQuestion();
+      }
+    });
+
+    /* When enemy reaches the left edge → life lost */
+    el.addEventListener('animationend', () => {
+      /* Only penalize if not already destroyed */
+      const still = this.enemies.find(e => e.uid === uid);
+      if (!still) return;   // already killed by correct answer
+
+      /* Remove from list */
+      this.enemies = this.enemies.filter(e => e.uid !== uid);
+      el.remove();
+
+      /* Penalize */
+      State.lives--;
+      State.combo = 1;
+
+      screenShake();
+      this._updateHUD();
+
+      const hearts = ['','❤️','❤️❤️','❤️❤️❤️'];
+      document.getElementById('shooter-lives').textContent = hearts[Math.max(0,State.lives)] || '💀';
+
+      if (State.lives <= 0) {
+        this.endGame();
+        return;
+      }
+
+      this._checkCompletion();
+    });
+
+    document.getElementById('shooter-arena').appendChild(el);
+
+    /* Push to END of enemies list (oldest = index 0 = leftmost) */
+    this.enemies.push({ el, q, uid });
+
+    /* If this is the first enemy, show its question */
+    if (this.enemies.length === 1) this._showTargetQuestion();
+
+    /* Stop spawning after the max enemy count */
+    if (this.enemiesSpawned >= this.maxEnemies) {
+      clearInterval(this._spawnInterval);
+      this._spawnInterval = null;
+    }
+  },
+
+  /* Remove an enemy by uid with explosion animation */
+  _destroyEnemy(uid) {
+    const idx = this.enemies.findIndex(e => e.uid === uid);
+    if (idx === -1) return;
+
+    const { el } = this.enemies[idx];
+
+    /* Remove from logical list FIRST so animationend won't penalize */
+    this.enemies.splice(idx, 1);
+
+    /* Play explosion animation then remove DOM node */
+    spawnExplosion(el.offsetLeft + el.offsetWidth/2, el.offsetTop + el.offsetHeight/2, '#00ff88');
+    el.remove();
+
+    /* Increment hits */
+    State.total++;
+    this._checkCompletion();
+  },
+
+  /* Show the question of the current leftmost enemy */
+  _showTargetQuestion() {
+    const qEl = document.getElementById('shooter-question-text');
+    if (!qEl) return;
+
+    if (this.enemies.length === 0) {
+      qEl.textContent = 'Waiting for enemies...';
+      return;
+    }
+
+    const target = this.enemies[0];  // always leftmost
+    qEl.textContent = target.q.q;
+  },
+
+  _clearArena() {
+    const arena = document.getElementById('shooter-arena');
+    if (arena) {
+      const enemies = arena.querySelectorAll('.enemy-bug');
+      enemies.forEach(el => el.remove());
+    }
+    this.enemies = [];
+  },
+
+  _checkCompletion() {
+    if (this.enemiesSpawned >= this.maxEnemies && this.enemies.length === 0) {
+      setTimeout(() => {
+        if (Router.current === 'shooter') this.endGame();
+      }, 250);
+    }
+  },
+
+  _updateHUD() {
     document.getElementById('shooter-score').textContent = State.score;
     document.getElementById('shooter-combo').textContent = 'x' + State.combo;
-  }
+  },
 
-  function endGame() {
-    cancelAnimationFrame(animId);
+  endGame() {
     clearInterval(State.timerInterval);
-    window.removeEventListener('resize', resizeCanvas);
+    clearInterval(this._spawnInterval);
+    this._clearArena();
     showResults({
       score: State.score, correct: State.correct,
       total: State.total, maxCombo: State.maxCombo,
-      timeLeft, mode: 'shooter', world: State.world
+      timeLeft: this.timeLeft, mode: 'shooter', world: State.world
     });
   }
-
-  return { init };
-})();
+};
 
 /* ============================================================
    12. BUG HUNTER MODE
@@ -1432,9 +1540,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Enter') Shooter_fire();
   });
   document.getElementById('shooter-fire-btn').addEventListener('click', Shooter_fire);
-  document.getElementById('btn-shooter-hint').addEventListener('click', () => {
-    if (window._shooterUseHint) window._shooterUseHint();
-  });
+  const shooterHintBtn = document.getElementById('btn-shooter-hint');
+  if (shooterHintBtn) shooterHintBtn.style.display = 'none';
+  const shooterHintCount = document.getElementById('shooter-hint-count');
+  if (shooterHintCount) shooterHintCount.style.display = 'none';
   document.getElementById('btn-shooter-quit').addEventListener('click', quitGame);
   document.getElementById('btn-shooter-back').addEventListener('click', quitGame);
 
@@ -1479,9 +1588,15 @@ document.addEventListener('DOMContentLoaded', () => {
    19. MODE LAUNCHER
    ============================================================ */
 function startMode(mode, world) {
-  if (mode === 'shooter')   Shooter.init(world);
-  else if (mode === 'bugHunter') BugHunter.init(world);
-  else if (mode === 'guesser')   Guesser.init(world);
+  try {
+    if (mode === 'shooter')   Shooter.start(world);
+    else if (mode === 'bugHunter') BugHunter.init(world);
+    else if (mode === 'guesser')   Guesser.init(world);
+  } catch (e) {
+    console.error('Error starting mode:', e);
+    // Fallback to start screen
+    Router.go('start');
+  }
 }
 
 /* ---------- Shooter fire wrapper (needs to be global for event) ---------- */
@@ -1507,21 +1622,27 @@ window._shooterFire = null;
 // Patch Shooter to expose fire
 const ShooterModule = (() => {
   let canvas, ctx, enemies = [], currentQ = null;
-  let qIndex = 0, qs = [], timeLeft = 60, animId = null, hintsLeft = 3;
+  let qIndex = 0, qs = [], timeLeft = 60, animId = null;
+  let maxEnemies = 7, enemiesSpawned = 0;
   const COLORS = ['#ff3c5a','#bf00ff','#ff7c00','#00e5ff'];
 
   function init(world) {
     resetState();
     qs = shuffle([...SHOOTER_QS[world]]);
-    qIndex = 0; enemies = []; timeLeft = 60; hintsLeft = 3;
+    qIndex = 0; enemies = []; timeLeft = 60;
+    enemiesSpawned = 0;
     document.getElementById('shooter-score').textContent = '0';
     document.getElementById('shooter-combo').textContent = 'x1';
     document.getElementById('shooter-lives').textContent = '❤️❤️❤️';
     document.getElementById('shooter-input').value = '';
     document.getElementById('shooter-feedback').textContent = '';
-    document.getElementById('shooter-hint-text').textContent = '';
+    const hintText = document.getElementById('shooter-hint-text');
+    if (hintText) hintText.textContent = '';
+    const hintBtn  = document.getElementById('btn-shooter-hint');
+    if (hintBtn) hintBtn.style.display = 'none';
+    const hintCount = document.getElementById('shooter-hint-count');
+    if (hintCount) hintCount.style.display = 'none';
     document.getElementById('shooter-timer').style.color = '';
-    updateHintUI();
     canvas = document.getElementById('shooter-canvas');
     ctx    = canvas.getContext('2d');
     resize();
@@ -1536,7 +1657,7 @@ const ShooterModule = (() => {
     cancelAnimationFrame(animId);
     loop();
     window._shooterFire = fire;
-    window._shooterUseHint = useHint;
+    window._shooterUseHint = null;
   }
 
   function resize() {
@@ -1554,27 +1675,18 @@ const ShooterModule = (() => {
   }
 
   function updateHintUI() {
-    const hintCount = document.getElementById('shooter-hint-count');
-    const hintButton = document.getElementById('btn-shooter-hint');
-    if (hintCount) hintCount.textContent = 'HINTS LEFT: ' + hintsLeft;
-    if (hintButton) hintButton.disabled = hintsLeft <= 0;
+    /* hint feature disabled */
   }
 
   function useHint() {
-    if (hintsLeft <= 0) {
-      setFeedback('shooter-feedback', 'NO HINTS LEFT', 'err');
-      return;
-    }
-    hintsLeft -= 1;
-    updateHintUI();
-    if (currentQ) {
-      document.getElementById('shooter-hint-text').textContent = 'HINT: ' + currentQ.hint;
-      setFeedback('shooter-feedback', 'FREE HINT USED', 'ok');
-    }
+    /* hint feature disabled */
   }
 
   function spawnE() {
     if (Router.current !== 'shooter') return;
+    if (enemiesSpawned >= maxEnemies) return;
+
+    enemiesSpawned++;
     const speed = 0.45 + (State.score / 1000);
     enemies.push({
       x: (canvas.width || 800) + 40,
@@ -1584,7 +1696,9 @@ const ShooterModule = (() => {
       size: 26, alive: true
     });
     const delay = Math.max(1600, 3200 - State.score * 2);
-    setTimeout(() => { if (Router.current === 'shooter') spawnE(); }, delay);
+    if (enemiesSpawned < maxEnemies) {
+      setTimeout(() => { if (Router.current === 'shooter') spawnE(); }, delay);
+    }
   }
 
   function loop() {
@@ -1597,7 +1711,7 @@ const ShooterModule = (() => {
       if (e.x < -e.size) { e.alive = false; hitZeke(); return; }
       drawBug(e);
     });
-    enemies = enemies.filter(e => e.x > -200);
+    enemies = enemies.filter(e => e.alive && e.x > -200);
     animId = requestAnimationFrame(loop);
   }
 
@@ -1623,26 +1737,49 @@ const ShooterModule = (() => {
     ctx.restore();
   }
 
+  function normalizeAnswer(value) {
+    let text = (value || '').trim().toLowerCase();
+    if (text.startsWith('<') && text.endsWith('>')) {
+      text = text.slice(1, -1).trim();
+    }
+    if ((text.startsWith('"') && text.endsWith('"')) ||
+        (text.startsWith("'") && text.endsWith("'"))) {
+      text = text.slice(1, -1).trim();
+    }
+    return text;
+  }
+
   function fire(answer) {
-    const ans  = (answer || '').trim().toLowerCase();
-    const corr = (currentQ.a || '').trim().toLowerCase();
+    const ans  = normalizeAnswer(answer);
+    const corr = normalizeAnswer(currentQ.a);
     if (ans === corr) {
-      const target = enemies.filter(e=>e.alive).sort((a,b)=>b.x-a.x)[0];
-      if (target) { spawnExplosion(target.x, target.y + 64, target.color); target.alive = false; }
-      State.score += 100 * State.combo;
+      const target = enemies.filter(e => e.alive).sort((a, b) => a.x - b.x)[0];
+      if (target) {
+        spawnExplosion(target.x, target.y + 64, '#00ff88');
+        target.alive = false;
+      }
+      window._shooterCorrectHit = true;
+      setTimeout(() => { window._shooterCorrectHit = false; }, 100);
+      const app = document.getElementById('app');
+      const explosionLayer = document.getElementById('explosion-layer');
+      if (app) app.classList.remove('shake');
+      if (explosionLayer) explosionLayer.classList.remove('flash');
+      const hintText = document.getElementById('shooter-hint-text');
+      if (hintText) hintText.textContent = '';
+      State.score += 100;
       State.combo  = Math.min(State.combo + 1, 8);
       State.correct++;
       State.maxCombo = Math.max(State.maxCombo, State.combo);
-      setFeedback('shooter-feedback', '✓ CORRECT! +' + (100 * State.combo), 'ok');
+      setFeedback('shooter-feedback', '✓ CORRECT! +100', 'ok');
       showNotif('⚡ HIT! x' + State.combo + ' COMBO');
     } else {
       State.combo = 1;
-      setFeedback('shooter-feedback', '✗ WRONG! Hint: ' + currentQ.hint, 'err');
       screenShake();
     }
     updateHUD();
     document.getElementById('shooter-input').value = '';
     nextQ();
+    checkClearCondition();
   }
 
   function hitZeke() {
@@ -1652,13 +1789,25 @@ const ShooterModule = (() => {
     const h = ['💀','❤️','❤️❤️','❤️❤️❤️'];
     document.getElementById('shooter-lives').textContent = h[State.lives] || '💀';
     setFeedback('shooter-feedback', '💀 BUG REACHED ZEKE!', 'err');
-    if (State.lives <= 0) endGame();
+    if (State.lives <= 0) {
+      endGame();
+      return;
+    }
     updateHUD();
+    checkClearCondition();
   }
 
   function updateHUD() {
     document.getElementById('shooter-score').textContent = State.score;
     document.getElementById('shooter-combo').textContent = 'x' + State.combo;
+  }
+
+  function checkClearCondition() {
+    const alive = enemies.filter(e => e.alive).length;
+    if (enemiesSpawned >= maxEnemies && alive === 0) {
+      State.worldCleared = true;
+      endGame();
+    }
   }
 
   function endGame() {
